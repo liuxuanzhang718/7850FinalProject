@@ -1,15 +1,11 @@
-# CLEAN-Contact
+# CSE 7850 - Final Project
 
-This repository contains the code and data for the paper "CLEAN-Contact: Contrastive Learning-enabled Enzyme Functional Annotation Prediction with Structural Inference".
+Author: Sizhe Fang, Xinyue Huang, Xuanzhang Liu, Yiling Wu
 
 ## Introduction
-CLEAN-Contact requires protein sequences and structures as input. The sequence inputs can be CSV or FASTA files. The 
-structure inputs must be PDB files. 
+Building upon the CLEAN-Contact method, our approach leverages the protein language model ESM-2 to encode amino acid sequences and the convolutional neural network ResNet50 to process structural data derived from contact maps. The sequence inputs can be CSV or FASTA files. The structure inputs must be PDB files. 
 
-Please note that if the proteins in the input CSV or FASTA files already have structures in the [Alphafold database](https://alphafold.ebi.ac.uk/), 
-CLEAN-Contact will pull those PDB files for the user. In that case the user will only need 
-to include their protein sequences as input. Otherwise, if the protein structures are not already in the Alphafold 
-database, the user should obtain their PDB files from another method before running CLEAN-Contact.
+Please note that due to the limitation of GitHub file, the data file is stored in the GT Box.
 
 ## Installation and Setup
 ### Requirements
@@ -19,7 +15,7 @@ fair-esm == 2.0.0, pytorch-cuda == 12.1
 ### Installation
 1. Clone the code and start setting up the conda environment
     ```bash
-    git clone https://github.com/PNNL-CompBio/CLEAN-Contact.git
+    git clone https://github.com/liuxuanzhang718/7850FinalProject.git
     cd CLEAN-Contact
     conda create -n clean-contact python=3.10 -y
     conda activate clean-contact
@@ -42,8 +38,7 @@ fair-esm == 2.0.0, pytorch-cuda == 12.1
    >>> ensure_dirs()
     ```
 2. Download the precomputed embeddings and distance map for both training and test data from 
-[here](https://drive.google.com/drive/folders/1yw0P8kjiqCUPyYAZdI-GIpSGEnSOScVZ?usp=sharing) and put both `esm_data` 
-and `distance_map` folders under the `data` folder.
+[here]() 
 
 
 ## Pre-inference
@@ -72,8 +67,8 @@ python extract_structure_representation.py \
 ```
 python
 >>> from src.CLEAN.utils import csv_to_fasta, retrieve_esm2_embedding
->>> csv_to_fasta('data/split100_reduced.csv', 'data/split100_reduced.fasta') # fasta file will be 'data/split100_reduced.fasta'
->>> retrieve_esm2_embedding('split100_reduced')
+>>> csv_to_fasta('data/selected_10k.csv', 'data/selected_10k.fasta') # fasta file will be 'data/selected_10k.fasta'
+>>> retrieve_esm2_embedding('selected_10k')
 ```
 
 #### Data in FASTA format
@@ -83,13 +78,13 @@ For example, your `<fasta-file>` is `data/split100_reduced.fasta`. Then run the 
 ```
 python
 >>> from src.CLEAN.utils import fasta_to_csv, retrieve_esm2_embedding
->>> fasta_to_csv('split100_reduced') # output will be 'data/split100_reduced.csv'
->>> retrieve_esm2_embedding('split100_reduced')
+>>> fasta_to_csv('selected_10k')
+>>> retrieve_esm2_embedding('selected_10k')
 ```
 
 ```bash
 python extract_structure_representation.py \
-    --input data/split100_reduced.csv \
+    --input data/selected_10k.csv \
     --pdb-dir <pdb-dir> 
 ```
 
@@ -117,63 +112,40 @@ If your dataset is in `csv` format, you can use the following command to inferen
 
 ```bash
 python inference.py \
-    --train-data split100_reduced \
-    --test-data <test-data> \
-    --gmm <gmm> \
+    --train-data selected_10k \
+    --test-data selected_2k_testset \
     --method <method>
 ```
 
-Replace `<test-data>` with your test data name, `<gmm>` with the list of fitted Gaussian Mixture Models (GMMs) and `<method>` with the `maxsep` or `pvalue`.
-
-If you provide `<gmm>`, the model will use the fitted GMMs to compute prediction confidence. 
-
-Run `python extract_confidence_result.py` and `python print_prediction_confidence_results.py` to extract and print the prediction confidence results, respectively, to reproduce results in Fig. S4-6.
-
-We provide the fitted GMMs based on `maxsep` at `gmm_test/gmm_lst.pkl`. 
-
-If your dataset is in `fasta` format, you can use the following command to inference the model:
-
-```bash
-python inference_fasta.py \
-    --train-data split100_reduced \
-    --fasta <fasta-file> \
-    --gmm <gmm> \
-    --method <method>
-```
+Replace `<test-data>` with your test data name, `<method>` with the `maxsep`, `pvalue`, `knn`, `filtered_hierarchical_kNN`, `integrated`, `integrated_triple` or `softmax`.
 
 Performance metrics measured by Precision, Recall, F-1, and AUROC will be printed out. Per sample predictions will be saved in `results` folder.
 
 ## Training
 
-Sequences whose EC number has only one sequence are required to mutated to generate positive samples. We provide the mutated sequences in `data/split100_reduced_single_seq_ECs.csv`. To get your own mutated sequences, run the following command:
+Sequences whose EC number has only one sequence are required to mutated to generate positive samples. We provide the mutated sequences in `data/selected_10k.csv`. To get your own mutated sequences, run the following command:
 
 ```
 python
 >>> from src.CLEAN.utils import mutate_single_seq_ECs
->>> mutate_single_seq_ECs('split100_reduced')
+>>> mutate_single_seq_ECs('selected_10k')
 ```
 
 ```bash
 python mutate_conmap_for_single_EC.py \
-    --fasta data/split100_reduced_single_seq_ECs.fasta 
+    --fasta data/selected_10k.fasta 
 ```
 
 ```
 python
 >>> from src.CLEAN.utils import fasta_to_csv, merge_sequence_structure_emb
->>> fasta_to_csv('split100_reduced_single_seq_ECs')
->>> merge_sequence_structure_emb('split100_reduced_single_seq_ECs')
+>>> fasta_to_csv('selected_10k')
+>>> merge_sequence_structure_emb('selected_10k')
 ```
 
-To train the model mentioned in the main text (`addition` model), modify arguments in `train-split100-reduced-resnet50-esm2-2560-addition-triplet.sh` and run the following command:
+To train the model mentioned in the main text (`addition` model), modify arguments in `train-addition-triplet.sh` and run the following command:
 
 ```bash
-./train-split100-reduced-resnet50-esm2-2560-addition-triplet.sh
+./train-addition-triplet.sh
 ```
 
-To train models with the other combinations (`contact_1` and `contact_2`), modify arguments in `train-split100-reduced-resnet50-esm2-2560-contact_1-triplet.sh` and `train-split100-reduced-resnet50-esm2-2560-contact_2-triplet.sh`, respectively, and run the following command:
-
-```bash
-./train-split100-reduced-resnet50-esm2-2560-contact_1-triplet.sh
-./train-split100-reduced-resnet50-esm2-2560-contact_2-triplet.sh
-```

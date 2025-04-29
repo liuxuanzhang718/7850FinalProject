@@ -11,7 +11,7 @@ def warn(*args, **kwargs):
     pass
 warnings.warn = warn
 
-def infer_pvalue(train_data, test_data, p_value = 1e-4, nk_random = 50, 
+def infer_pvalue(train_data, test_data, p_value = 1e-4, nk_random = 10, 
                  report_metrics = False, pretrained=True, model_name=None, gmm=None):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -54,7 +54,7 @@ def infer_pvalue(train_data, test_data, p_value = 1e-4, nk_random = 50,
         print('-' * 75)
         print(f'>>> total samples: {len(true_label)} | total ec: {len(all_label)} \n'
             f'>>> precision: {pre:.3} | recall: {rec:.3}'
-            f'| F1: {f1:.3} | AUC: {roc:.3} ')
+            f'| F1: {f1:.3} | AUC: {roc:.3} | ACC: {acc:.3}')
         print('-' * 75)  
     
 

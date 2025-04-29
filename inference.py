@@ -23,9 +23,8 @@ def main(args):
             report_metrics=True,
             model_name=args.model_name
         )
-    elif 'softmax' in args.method:
-        for T in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
-            infer_softmax(args.train_data, args.test_data, T=T, report_metrics=True, model_name=args.model_name)
+    elif 'softmax' in args.method:                                                    
+        infer_softmax(args.train_data, args.test_data, T=0.1, report_metrics=True, model_name=args.model_name)
     else:
         raise ValueError(f'Invalid method: {args.method}')
 
