@@ -38,7 +38,7 @@ fair-esm == 2.0.0, pytorch-cuda == 12.1
    >>> ensure_dirs()
     ```
 2. Download the precomputed embeddings and distance map for both training and test data from 
-[here]() 
+[here](https://gatech.box.com/s/rimcplz8ldf0y6z254e13eye88jkyw29) 
 
 
 ## Pre-inference
